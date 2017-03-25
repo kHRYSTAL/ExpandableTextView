@@ -244,61 +244,59 @@ public class ExpandableTextView extends TextView{
         mTextLineCount = -1;
         switch (mCurrState){
             case STATE_SHRINK: {
+//  update by kHRYSTAL fix support '\n'
                 mLayout = new DynamicLayout(mOrigText, mTextPaint, mLayoutWidth, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
+                //计算共有多少行
                 mTextLineCount = mLayout.getLineCount();
-
+                //如果文字行数小于限制行数 那么直接返回 不需要折叠
                 if (mTextLineCount <= mMaxLinesOnShrink) {
                     return mOrigText;
                 }
-                int indexEnd = getValidLayout().getLineEnd(mMaxLinesOnShrink - 1);
-                int indexStart = getValidLayout().getLineStart(mMaxLinesOnShrink - 1);
-                int indexEndTrimmed = indexEnd
-                        - getLengthOfString(mEllipsisHint)
-                        - (mShowToExpandHint ? getLengthOfString(mToExpandHint) + getLengthOfString(mGapToExpandHint) : 0);
-                if (indexEndTrimmed <= 0) {
-                    return mOrigText.subSequence(0, indexEnd);
+
+                if (mOrigText == null || mOrigText.length() == 0) {
+                    return mOrigText;
                 }
 
-                int remainWidth = getValidLayout().getWidth() -
-                        (int) (mTextPaint.measureText(mOrigText.subSequence(indexStart, indexEndTrimmed).toString()) + 0.5);
+                // 计算限制最大行的第一个字index
+                int start = getValidLayout().getLineStart(mMaxLinesOnShrink - 1);
+                // 计算限制最大行的最后一个字index 有可能是换行符 有可能是"" 需要递减
+                int end = getValidLayout().getLineEnd(mMaxLinesOnShrink - 1);
+                // 获取最后一行文字内容
+                CharSequence content = mOrigText.subSequence(start, end);
+
+                float moreWidth = getPaint().measureText(mToExpandHint, 0, mToExpandHint.length());
+                float gapWidth = getPaint().measureText(mGapToExpandHint, 0, mGapToExpandHint.length());
+                float maxWidth = getValidLayout().getWidth() - moreWidth - gapWidth;
+                // 获取一行显示的最大长度
+                getPaint().setSubpixelText(true);
+                // TODO 注意改方法如果设置宽度为wrap_content len会返回0 导致错误异常!!
+                int len = getPaint().breakText(content, 0, content.length(), true, maxWidth, null);
+                len = Math.min(len, end);
+
+                // 判断这行最后一个字是不是换行符 如果是 左移最大index
+                if (content.charAt(len - 1) == '\n') {
+                    len -= 1;
+                }
+                // 计算最后一行的剩余空间
+                int endSpaceWidth = getValidLayout().getWidth() -
+                        (int) (mTextPaint.measureText(mOrigText.subSequence(start, start + len).toString()) + 0.5);
+                // 计算 "... 全文"所占空间
                 float widthTailReplaced = mTextPaint.measureText(getContentOfString(mEllipsisHint)
-                        + (mShowToExpandHint ? (getContentOfString(mToExpandHint) + getContentOfString(mGapToExpandHint)) : ""));
-
-                int indexEndTrimmedRevised = indexEndTrimmed;
-                if (remainWidth > widthTailReplaced) {
-                    int extraOffset = 0;
-                    int extraWidth = 0;
-                    while (remainWidth > widthTailReplaced + extraWidth) {
-                        extraOffset++;
-                        if (indexEndTrimmed + extraOffset <= mOrigText.length()) {
-                            extraWidth = (int) (mTextPaint.measureText(
-                                    mOrigText.subSequence(indexEndTrimmed, indexEndTrimmed + extraOffset).toString()) + 0.5);
-                        } else {
-                            break;
+                        + (mShowToExpandHint ? (getContentOfString(mToExpandHint) + getContentOfString(mGapToExpandHint)) + 0.5 : ""));
+                // 如果最后一行剩余空间小于 ... 全文所占空间 需要递减文字长度
+                if (endSpaceWidth <= widthTailReplaced) {
+                    while (endSpaceWidth <= widthTailReplaced) {
+                        len = len - 1;
+                        if (content.charAt(len - 1) == '\n') {
+                            len = len - 1;
                         }
+                        endSpaceWidth = getValidLayout().getWidth() -
+                                (int) (mTextPaint.measureText(mOrigText.subSequence(start, start + len).toString()));
                     }
-                    indexEndTrimmedRevised += extraOffset - 1;
-                } else {
-                    int extraOffset = 0;
-                    int extraWidth = 0;
-                    while (remainWidth + extraWidth < widthTailReplaced) {
-                        extraOffset--;
-                        if (indexEndTrimmed + extraOffset > indexStart) {
-                            extraWidth = (int) (mTextPaint.measureText(mOrigText.subSequence(indexEndTrimmed + extraOffset, indexEndTrimmed).toString()) + 0.5);
-                        } else {
-                            break;
-                        }
-                    }
-                    indexEndTrimmedRevised += extraOffset;
                 }
+                return createShrinkText(mOrigText.subSequence(0, start + len));
+//  update end
 
-                SpannableStringBuilder ssbShrink = new SpannableStringBuilder(mOrigText, 0, indexEndTrimmedRevised)
-                        .append(mEllipsisHint);
-                if (mShowToExpandHint) {
-                    ssbShrink.append(getContentOfString(mGapToExpandHint) + getContentOfString(mToExpandHint));
-                    ssbShrink.setSpan(mTouchableSpan, ssbShrink.length() - getLengthOfString(mToExpandHint), ssbShrink.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                }
-                return ssbShrink;
             }
             case STATE_EXPAND: {
                 if (!mShowToShrinkHint) {
@@ -318,6 +316,16 @@ public class ExpandableTextView extends TextView{
             }
         }
         return mOrigText;
+    }
+
+    private Spanned createShrinkText(CharSequence limitContent) {
+        SpannableStringBuilder ssShrink = new SpannableStringBuilder(limitContent)
+                .append(mEllipsisHint);
+        if (mShowToExpandHint) {
+            ssShrink.append(mGapToExpandHint).append(mToExpandHint);
+            ssShrink.setSpan(mTouchableSpan, ssShrink.length() - getLengthOfString(mToExpandHint), ssShrink.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        return ssShrink;
     }
 
     public void setExpandListener(OnExpandListener listener){
