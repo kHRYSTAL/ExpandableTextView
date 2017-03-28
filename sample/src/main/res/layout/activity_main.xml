@@ -36,6 +36,7 @@
 
             <cn.carbs.android.expandabletextview.library.ExpandableTextView
                 android:id="@+id/etv"
+                app:etv_EnableToggle="false"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"

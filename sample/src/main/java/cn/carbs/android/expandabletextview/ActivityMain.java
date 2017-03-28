@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Random;
 
@@ -34,6 +35,7 @@ public class ActivityMain extends AppCompatActivity implements View.OnClickListe
         mBtnUpdateText = (Button)this.findViewById(R.id.button_update_text);
         mBtnToListView = (Button)this.findViewById(R.id.button_to_list_view);
         mETV = (ExpandableTextView)this.findViewById(R.id.etv);
+        mETV.setOnClickListener(this);
 
         mBtnUpdateText.setOnClickListener(this);
         mBtnToListView.setOnClickListener(this);
@@ -66,6 +68,13 @@ public class ActivityMain extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.button_update_text:
                 updateText();
+                break;
+            case R.id.etv:
+                if (mETV.isExpandClick()) {
+
+                } else {
+                    Toast.makeText(ActivityMain.this, "show", Toast.LENGTH_SHORT).show();
+                }
                 break;
         }
     }

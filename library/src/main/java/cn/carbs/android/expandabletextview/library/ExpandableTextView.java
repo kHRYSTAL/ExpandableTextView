@@ -84,6 +84,7 @@ public class ExpandableTextView extends TextView{
     //  is specifically for inner toggle
     private ExpandableClickListener mExpandableClickListener;
     private OnExpandListener mOnExpandListener;
+    private boolean isExpandClick;
 
     public ExpandableTextView(Context context) {
         super(context);
@@ -332,11 +333,16 @@ public class ExpandableTextView extends TextView{
         mOnExpandListener = listener;
     }
 
+    public boolean isExpandClick() {
+        return isExpandClick;
+    }
+
     private Layout getValidLayout(){
         return mLayout != null ? mLayout : getLayout();
     }
 
     private void toggle(){
+        isExpandClick = false;
         switch (mCurrState){
             case STATE_SHRINK:
                 mCurrState = STATE_EXPAND;
@@ -450,11 +456,7 @@ public class ExpandableTextView extends TextView{
 
         @Override
         public void onClick(View widget) {
-            if(hasOnClickListeners()
-                    && (getOnClickListener(ExpandableTextView.this) instanceof ExpandableClickListener)) {
-            }else{
                 toggle();
-            }
         }
 
         @Override
@@ -489,9 +491,12 @@ public class ExpandableTextView extends TextView{
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 mPressedSpan = getPressedSpan(textView, spannable, event);
                 if (mPressedSpan != null) {
+                    isExpandClick = true;
                     mPressedSpan.setPressed(true);
                     Selection.setSelection(spannable, spannable.getSpanStart(mPressedSpan),
                             spannable.getSpanEnd(mPressedSpan));
+                } else {
+                    isExpandClick = false;
                 }
             } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
                 TouchableSpan touchedSpan = getPressedSpan(textView, spannable, event);
@@ -499,11 +504,17 @@ public class ExpandableTextView extends TextView{
                     mPressedSpan.setPressed(false);
                     mPressedSpan = null;
                     Selection.removeSelection(spannable);
+                    isExpandClick = true;
+                } else {
+                    isExpandClick = false;
                 }
             } else {
                 if (mPressedSpan != null) {
                     mPressedSpan.setPressed(false);
                     super.onTouchEvent(textView, spannable, event);
+                    isExpandClick = true;
+                } else {
+                    isExpandClick = false;
                 }
                 mPressedSpan = null;
                 Selection.removeSelection(spannable);
