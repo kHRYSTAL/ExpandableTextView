@@ -84,6 +84,7 @@ public class ExpandableTextView extends TextView{
     //  is specifically for inner toggle
     private ExpandableClickListener mExpandableClickListener;
     private OnExpandListener mOnExpandListener;
+    // this field must control in outside when touch in recyclerView such as write in POJO
     private boolean isExpandClick;
 
     public ExpandableTextView(Context context) {
@@ -333,8 +334,12 @@ public class ExpandableTextView extends TextView{
         mOnExpandListener = listener;
     }
 
-    public boolean isExpandClick() {
+    public boolean isExpandClicked() {
         return isExpandClick;
+    }
+
+    public void setExpandIsClicked(boolean isExpandClicked) {
+        this.isExpandClick = isExpandClicked;
     }
 
     private Layout getValidLayout(){

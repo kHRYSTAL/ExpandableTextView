@@ -70,7 +70,7 @@ public class ActivityMain extends AppCompatActivity implements View.OnClickListe
                 updateText();
                 break;
             case R.id.etv:
-                if (mETV.isExpandClick()) {
+                if (mETV.isExpandClicked()) {
 
                 } else {
                     Toast.makeText(ActivityMain.this, "show", Toast.LENGTH_SHORT).show();
