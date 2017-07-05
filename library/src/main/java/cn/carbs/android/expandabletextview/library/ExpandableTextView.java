@@ -85,7 +85,7 @@ public class ExpandableTextView extends TextView{
     private ExpandableClickListener mExpandableClickListener;
     private OnExpandListener mOnExpandListener;
     // this field must control in outside when touch in recyclerView such as write in POJO
-    private boolean isExpandClick;
+    private boolean isSpanHandle;
 
     public ExpandableTextView(Context context) {
         super(context);
@@ -334,12 +334,12 @@ public class ExpandableTextView extends TextView{
         mOnExpandListener = listener;
     }
 
-    public boolean isExpandClicked() {
-        return isExpandClick;
+    public boolean isSpanHandle() {
+        return isSpanHandle;
     }
 
-    public void setExpandIsClicked(boolean isExpandClicked) {
-        this.isExpandClick = isExpandClicked;
+    public void setIsSpanHandle(boolean isSpanHandle) {
+        this.isSpanHandle = isSpanHandle;
     }
 
     private Layout getValidLayout(){
@@ -347,7 +347,7 @@ public class ExpandableTextView extends TextView{
     }
 
     private void toggle(){
-        isExpandClick = false;
+        isSpanHandle = false;
         switch (mCurrState){
             case STATE_SHRINK:
                 mCurrState = STATE_EXPAND;
@@ -396,7 +396,8 @@ public class ExpandableTextView extends TextView{
     private class ExpandableClickListener implements View.OnClickListener{
         @Override
         public void onClick(View view) {
-            toggle();
+            if (!isSpanHandle)
+                toggle();
         }
     }
 
@@ -461,7 +462,7 @@ public class ExpandableTextView extends TextView{
 
         @Override
         public void onClick(View widget) {
-                toggle();
+            toggle();
         }
 
         @Override
@@ -496,12 +497,12 @@ public class ExpandableTextView extends TextView{
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 mPressedSpan = getPressedSpan(textView, spannable, event);
                 if (mPressedSpan != null) {
-                    isExpandClick = true;
+                    isSpanHandle = true;
                     mPressedSpan.setPressed(true);
                     Selection.setSelection(spannable, spannable.getSpanStart(mPressedSpan),
                             spannable.getSpanEnd(mPressedSpan));
                 } else {
-                    isExpandClick = false;
+                    isSpanHandle = false;
                 }
             } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
                 TouchableSpan touchedSpan = getPressedSpan(textView, spannable, event);
@@ -509,17 +510,17 @@ public class ExpandableTextView extends TextView{
                     mPressedSpan.setPressed(false);
                     mPressedSpan = null;
                     Selection.removeSelection(spannable);
-                    isExpandClick = true;
+                    isSpanHandle = true;
                 } else {
-                    isExpandClick = false;
+                    isSpanHandle = false;
                 }
             } else {
                 if (mPressedSpan != null) {
                     mPressedSpan.setPressed(false);
                     super.onTouchEvent(textView, spannable, event);
-                    isExpandClick = true;
+                    isSpanHandle = true;
                 } else {
-                    isExpandClick = false;
+                    isSpanHandle = false;
                 }
                 mPressedSpan = null;
                 Selection.removeSelection(spannable);

@@ -3,6 +3,7 @@ package cn.carbs.android.expandabletextview;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -79,7 +80,9 @@ public class ActivityListView extends AppCompatActivity implements View.OnClickL
         mFlag = !mFlag;
     }
 
-    class TheBaseAdapter extends BaseAdapter implements ExpandableTextView.OnExpandListener{
+    class TheBaseAdapter extends BaseAdapter
+            implements ExpandableTextView.OnExpandListener
+    {
 
         private SparseArray<Integer> mPositionsAndStates = new SparseArray<>();
         private List<String> mList;
@@ -132,8 +135,7 @@ public class ActivityListView extends AppCompatActivity implements View.OnClickL
             viewHolder.etv.setTag(position);
             viewHolder.etv.setExpandListener(this);
             Integer state = mPositionsAndStates.get(position);
-
-            viewHolder.etv.updateForRecyclerView(content.toString(), etvWidth, state== null ? 0 : state);//第一次getview时肯定为etvWidth为0
+            viewHolder.etv.updateForRecyclerView(content.toString(), etvWidth, state == null ? 0 : state);//第一次getview时肯定为etvWidth为0
 
             return convertView;
         }
@@ -142,15 +144,16 @@ public class ActivityListView extends AppCompatActivity implements View.OnClickL
         public void onExpand(ExpandableTextView view) {
             Object obj = view.getTag();
             if(obj != null && obj instanceof Integer){
-                mPositionsAndStates.put((Integer)obj, view.getExpandState());
+                mPositionsAndStates.put((Integer)obj, 1);
             }
         }
-
+//
         @Override
         public void onShrink(ExpandableTextView view) {
             Object obj = view.getTag();
             if(obj != null && obj instanceof Integer){
-                mPositionsAndStates.put((Integer)obj, view.getExpandState());
+                mPositionsAndStates.put((Integer)obj, 0);
+                mListView.setSelection((Integer) obj);
             }
         }
     }

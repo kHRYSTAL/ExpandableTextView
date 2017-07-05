@@ -35,13 +35,13 @@ public class ActivityMain extends AppCompatActivity implements View.OnClickListe
         mBtnUpdateText = (Button)this.findViewById(R.id.button_update_text);
         mBtnToListView = (Button)this.findViewById(R.id.button_to_list_view);
         mETV = (ExpandableTextView)this.findViewById(R.id.etv);
+        // 测试添加OnClickListener的情况，功能正常。添加外部的onClick事件后，原来的点击toggle功能自动屏蔽，
+        // 点击尾部的ClickableSpan仍然有效
         mETV.setOnClickListener(this);
 
         mBtnUpdateText.setOnClickListener(this);
         mBtnToListView.setOnClickListener(this);
 
-        // 测试添加OnClickListener的情况，功能正常。添加外部的onClick事件后，原来的点击toggle功能自动屏蔽，
-        // 点击尾部的ClickableSpan仍然有效
         /*mETV.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
@@ -70,11 +70,7 @@ public class ActivityMain extends AppCompatActivity implements View.OnClickListe
                 updateText();
                 break;
             case R.id.etv:
-                if (mETV.isExpandClicked()) {
-
-                } else {
-                    Toast.makeText(ActivityMain.this, "show", Toast.LENGTH_SHORT).show();
-                }
+                Toast.makeText(ActivityMain.this, "is span handle:" + mETV.isSpanHandle(), Toast.LENGTH_SHORT).show();
                 break;
         }
     }
